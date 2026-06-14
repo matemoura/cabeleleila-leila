@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Detalhes do Agendamento')}"></head>
+<body class="bg-light">
+
+<nav th:replace="~{fragments/layout :: navbar(${agendamento.cliente.id})}"></nav>
+
+<div class="container" style="max-width: 600px;">
+
+    <div class="d-flex align-items-center mb-4 gap-3">
+        <a th:href="@{/agendamentos/historico/{id}(id=${agendamento.cliente.id})}"
+           class="btn btn-outline-secondary btn-sm">← Voltar</a>
+        <h4 class="mb-0">Detalhes do Agendamento</h4>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h5 class="mb-0" th:text="${agendamento.cliente.nome}"></h5>
+                    <small class="text-muted" th:text="${agendamento.cliente.email}"></small>
+                </div>
+                <span class="badge fs-6"
+                      th:classappend="${agendamento.status.name() == 'CONFIRMADO'} ? 'bg-success' :
+                                      (${agendamento.status.name() == 'CANCELADO'} ? 'bg-danger' :
+                                      (${agendamento.status.name() == 'CONCLUIDO'} ? 'bg-primary' : 'bg-warning text-dark'))"
+                      th:text="${agendamento.status}">
+                </span>
+            </div>
+
+            <hr>
+
+            <dl class="row mb-0">
+                <dt class="col-sm-4 text-muted">Data e Hora</dt>
+                <dd class="col-sm-8 fw-semibold"
+                    th:text="${#temporals.format(agendamento.dataHora, 'dd/MM/yyyy HH:mm')}"></dd>
+
+                <dt class="col-sm-4 text-muted">Serviços</dt>
+                <dd class="col-sm-8">
+                    <ul class="list-unstyled mb-0">
+                        <li th:each="s : ${agendamento.servicos}" class="d-flex justify-content-between">
+                            <span th:text="${s.nome}"></span>
+                            <span class="text-success" th:text="'R$ ' + ${s.preco}"></span>
+                        </li>
+                    </ul>
+                </dd>
+
+                <dt class="col-sm-4 text-muted">Valor Total</dt>
+                <dd class="col-sm-8 fw-semibold text-success">
+                    R$ <span th:text="${#aggregates.sum(agendamento.servicos.![preco])}"></span>
+                </dd>
+
+                <dt class="col-sm-4 text-muted" th:if="${agendamento.observacao}">Observação</dt>
+                <dd class="col-sm-8" th:if="${agendamento.observacao}"
+                    th:text="${agendamento.observacao}"></dd>
+            </dl>
+
+            <hr>
+
+            <div class="d-flex gap-2">
+                <a th:href="@{/agendamentos/editar/{id}(id=${agendamento.id})}"
+                   class="btn btn-primary btn-sm">Editar Agendamento</a>
+                <a th:href="@{/agendamentos/historico/{id}(id=${agendamento.cliente.id})}"
+                   class="btn btn-outline-secondary btn-sm">Ver Histórico</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

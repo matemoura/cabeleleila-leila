@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Painel da Leila')}"></head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark mb-4" style="background:#6a1b9a;">
+  <div class="container">
+    <span class="navbar-brand fw-bold">Painel da Leila</span>
+    <div class="d-flex gap-3 align-items-center">
+      <a href="/agenda" class="text-white text-decoration-none small">Agenda do Dia</a>
+      <a href="/funcionarios" class="text-white text-decoration-none small">Funcionarios</a>
+      <a href="/estoque" class="text-white text-decoration-none small">Estoque</a>
+      <a href="/" class="text-white text-decoration-none small">Site</a>
+      <a href="/funcionarios/sair" class="text-white text-decoration-none small opacity-75">Sair</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div th:if="${sucesso}" class="alert alert-success alert-dismissible fade show">
+    <span th:text="${sucesso}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Alerta de estoque baixo -->
+  <div th:if="${!itensAbaixoDoMinimo.isEmpty()}"
+       class="alert alert-dismissible fade show mb-3 d-flex justify-content-between align-items-start"
+       style="background:#fce4ec;border-left:5px solid #c62828;border-radius:8px;">
+    <div>
+      <div class="fw-semibold" style="color:#c62828;">
+        &#9888;&#65039;
+        <span th:text="${itensAbaixoDoMinimo.size()}"></span>
+        <span th:text="${itensAbaixoDoMinimo.size() == 1} ? 'item precisa' : 'itens precisam'"> precisa</span>
+        ser reposto
+      </div>
+      <div class="mt-1 d-flex flex-wrap gap-2">
+        <span th:each="item : ${itensAbaixoDoMinimo}"
+              class="badge"
+              style="background:#c62828;color:white;font-size:12px;">
+          <span th:text="${item.nome}"></span>
+          (<span th:text="${item.quantidade}"></span>/<span th:text="${item.quantidadeMinima}"></span>
+          <span th:text="${item.unidade}"></span>)
+        </span>
+      </div>
+    </div>
+    <div class="d-flex flex-column align-items-end gap-1 ms-3">
+      <a href="/estoque" class="btn btn-sm" style="background:#6a1b9a;color:white;white-space:nowrap;">Ver estoque</a>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  </div>
+
+  <h5 class="mb-3" style="color:#6a1b9a;">Proximos 7 dias</h5>
+
+  <!-- Cards de metricas -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#f3e5f5;">
+        <div class="card-body py-3">
+          <div class="text-muted small">Total</div>
+          <div class="fs-3 fw-semibold" style="color:#6a1b9a;" th:text="${total}">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#e8f5e9;">
+        <div class="card-body py-3">
+          <div class="text-muted small">Confirmados</div>
+          <div class="fs-3 fw-semibold text-success" th:text="${confirmados}">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#fff8e1;">
+        <div class="card-body py-3">
+          <div class="text-muted small">Pendentes</div>
+          <div class="fs-3 fw-semibold text-warning" th:text="${pendentes}">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center shadow-sm border-0" style="background:#e8f5e9;">
+        <div class="card-body py-3">
+          <div class="text-muted small">Receita prevista</div>
+          <div class="fs-5 fw-semibold text-success">
+            R$ <span th:text="${receitaPrevista}">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de agendamentos -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header" style="background:#f3e5f5;border:none;">
+      <strong style="color:#6a1b9a;">Agendamentos da semana</strong>
+    </div>
+
+    <div th:if="${agendamentos.isEmpty()}" class="card-body text-center text-muted py-5">
+      Nenhum agendamento nos proximos 7 dias.
+    </div>
+
+    <div th:unless="${agendamentos.isEmpty()}" class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead style="background:#fafafa;">
+          <tr>
+            <th>Data e Hora</th>
+            <th>Cliente</th>
+            <th>Telefone</th>
+            <th>Servicos</th>
+            <th>Status</th>
+            <th>Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="ag : ${agendamentos}">
+            <td th:text="${#temporals.format(ag.dataHora, 'dd/MM HH:mm')}"></td>
+            <td th:text="${ag.cliente.nome}"></td>
+            <td th:text="${ag.cliente.telefone}"></td>
+            <td>
+              <span th:each="s, iter : ${ag.servicos}">
+                <span th:text="${s.nome}"></span><span th:unless="${iter.last}">, </span>
+              </span>
+            </td>
+            <td>
+              <span class="badge rounded-pill"
+                    th:classappend="${ag.status.name() == 'CONFIRMADO'} ? 'bg-success' :
+                                    (${ag.status.name() == 'CANCELADO'} ? 'bg-danger' :
+                                    (${ag.status.name() == 'CONCLUIDO'} ? 'bg-primary' : 'bg-warning text-dark'))"
+                    th:text="${ag.status}">
+              </span>
+            </td>
+            <td>
+              <div th:unless="${ag.status.name() == 'CANCELADO' or ag.status.name() == 'CONCLUIDO'}"
+                   class="d-flex gap-1 flex-wrap">
+                <form th:action="@{/painel/finalizar/{id}(id=${ag.id})}" method="post" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-success">Finalizar</button>
+                </form>
+                <button type="button" class="btn btn-sm btn-outline-primary"
+                        th:attr="data-bs-toggle='modal',data-bs-target='#rm' + ${ag.id}">
+                  Remarcar
+                </button>
+                <form th:action="@{/painel/cancelar/{id}(id=${ag.id})}" method="post" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                          onclick="return confirm('Cancelar este agendamento?')">Cancelar</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modais de Remarcar -->
+<div th:each="ag : ${agendamentos}"
+     th:unless="${ag.status.name() == 'CANCELADO' or ag.status.name() == 'CONCLUIDO'}">
+  <div class="modal fade" th:id="'rm' + ${ag.id}" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header py-2" style="background:#6a1b9a;color:white;">
+          <h6 class="modal-title mb-0">
+            Remarcar &mdash; <span th:text="${ag.cliente.nome}"></span>
+          </h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="text-muted small mb-3">
+            Atual:
+            <strong th:text="${#temporals.format(ag.dataHora,'dd/MM/yyyy HH:mm')}"></strong>
+          </div>
+          <form th:action="@{/painel/remarcar/{id}(id=${ag.id})}" method="post">
+            <label class="form-label small fw-semibold">Nova data e horario</label>
+            <input type="datetime-local" name="novaDataHora" class="form-control form-control-sm mb-3"
+                   required
+                   th:value="${#temporals.format(ag.dataHora,'yyyy-MM-dd') + 'T' + #temporals.format(ag.dataHora,'HH:mm')}">
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary flex-fill"
+                      data-bs-dismiss="modal">Voltar</button>
+              <button type="submit" class="btn btn-sm text-white flex-fill"
+                      style="background:#6a1b9a;border:none;">Confirmar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

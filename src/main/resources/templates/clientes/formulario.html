@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Criar Conta')}"></head>
+<body class="bg-light">
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow-sm" style="width: 100%; max-width: 480px;">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <h2 style="color: #6a1b9a;">✂️ Cabeleleila Leila</h2>
+            </div>
+
+            <h5 class="mb-3">Criar conta</h5>
+
+            <form th:action="@{/clientes/salvar}" th:object="${cliente}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Nome completo</label>
+                    <input type="text" th:field="*{nome}" class="form-control"
+                           th:classappend="${#fields.hasErrors('nome')} ? 'is-invalid'"
+                           placeholder="Maria Silva">
+                    <div class="invalid-feedback" th:errors="*{nome}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">CPF</label>
+                    <input type="text" th:field="*{cpf}" class="form-control" id="cpfInput"
+                           th:classappend="${#fields.hasErrors('cpf')} ? 'is-invalid'"
+                           placeholder="000.000.000-00" maxlength="14">
+                    <div class="invalid-feedback" th:errors="*{cpf}"></div>
+                    <div class="form-text">Será usado para acessar sua conta.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" th:field="*{telefone}" class="form-control"
+                           th:classappend="${#fields.hasErrors('telefone')} ? 'is-invalid'"
+                           placeholder="(71) 99999-9999">
+                    <div class="invalid-feedback" th:errors="*{telefone}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">E-mail</label>
+                    <input type="email" th:field="*{email}" class="form-control"
+                           th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
+                           placeholder="maria@email.com">
+                    <div class="invalid-feedback" th:errors="*{email}"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
+            </form>
+
+            <hr>
+            <p class="text-center mb-0">
+                Já tem conta? <a th:href="@{/clientes/login}">Entrar com CPF</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const cpfInput = document.getElementById('cpfInput');
+    cpfInput.addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').substring(0, 11);
+        if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+        else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+        else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+        this.value = v;
+    });
+</script>
+</body>
+</html>

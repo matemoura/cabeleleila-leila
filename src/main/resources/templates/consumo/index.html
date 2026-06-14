@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Registro de Consumo')}"></head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark mb-4" style="background:#6a1b9a;">
+  <div class="container">
+    <span class="navbar-brand fw-bold">Registro de Consumo</span>
+    <div class="d-flex gap-3 align-items-center">
+      <a href="/agenda" class="text-white text-decoration-none small">&#8592; Voltar a agenda</a>
+      <a href="/funcionarios/sair" class="text-white text-decoration-none small opacity-75">Sair</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container" style="max-width:760px;">
+
+  <!-- Flash sucesso -->
+  <div th:if="${sucesso}" class="alert alert-dismissible fade show mb-3"
+       th:classappend="${alertaBaixo} ? 'alert-warning' : 'alert-success'">
+    <div th:text="${sucesso}"></div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Flash erro -->
+  <div th:if="${erro}" class="alert alert-danger alert-dismissible fade show mb-3">
+    <span th:text="${erro}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Instrucao -->
+  <div class="card border-0 mb-4" style="background:#f3e5f5;">
+    <div class="card-body py-3 px-4">
+      <div>
+        <div>
+          <div class="fw-semibold" style="color:#6a1b9a;">Como usar esta tela</div>
+          <div class="text-muted small">
+            Quando um produto acabar e o frasco for para o lixo, clique em
+            <strong>Frasco no lixo</strong> ao lado do produto.
+            O estoque sera baixado automaticamente e o painel vai alertar sobre reposicao.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Produtos sem estoque algum -->
+  <div th:if="${porCategoria.isEmpty()}" class="text-center text-muted py-5">
+    Nenhum produto cadastrado no estoque.
+  </div>
+
+  <!-- Grupos por categoria -->
+  <div th:each="entry : ${porCategoria}" class="mb-4">
+
+    <h6 class="fw-semibold mb-2 text-uppercase"
+        style="color:#6a1b9a;font-size:11px;letter-spacing:.8px;"
+        th:text="${entry.key.descricao}">
+    </h6>
+
+    <div class="card border-0 shadow-sm">
+      <ul class="list-group list-group-flush">
+
+        <li th:each="item : ${entry.value}"
+            class="list-group-item d-flex align-items-center justify-content-between py-3"
+            th:classappend="${item.semEstoque} ? 'bg-light'">
+
+          <!-- Info do produto -->
+          <div class="d-flex align-items-center gap-3">
+
+            <!-- Indicador visual de nivel -->
+            <div style="width:10px;height:44px;border-radius:5px;flex-shrink:0;"
+                 th:style="'width:10px;height:44px;border-radius:5px;flex-shrink:0;background:' +
+                           (${item.semEstoque} ? '#e0e0e0' :
+                           (${item.abaixoDoMinimo} ? '#ef9a9a' : '#a5d6a7')) + ';'">
+            </div>
+
+            <div>
+              <div class="fw-semibold" th:text="${item.nome}"
+                   th:style="${item.semEstoque} ? 'color:#9e9e9e;' : 'color:#212121;'"></div>
+              <div class="small">
+
+                <!-- Estoque atual -->
+                <span th:if="${item.semEstoque}" class="text-danger fw-semibold">
+                  Sem estoque
+                </span>
+                <span th:if="${!item.semEstoque and item.abaixoDoMinimo}"
+                      class="fw-semibold" style="color:#e65100;">
+                  <span th:text="${item.quantidade}"></span>
+                  <span th:text="${item.unidade}"></span>
+                  restante(s) &#9888;
+                </span>
+                <span th:if="${!item.abaixoDoMinimo}" class="text-success fw-semibold">
+                  <span th:text="${item.quantidade}"></span>
+                  <span th:text="${item.unidade}"></span>
+                </span>
+
+                <!-- Minimo -->
+                <span class="text-muted ms-1">
+                  (minimo: <span th:text="${item.quantidadeMinima}"></span>)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botao de baixa -->
+          <form th:action="@{/consumo/registrar/{id}(id=${item.id})}" method="post">
+            <button type="submit"
+                    th:disabled="${item.semEstoque}"
+                    class="btn btn-sm d-flex align-items-center gap-1"
+                    style="border:none;white-space:nowrap;"
+                    th:style="${item.semEstoque} ?
+                        'background:#f5f5f5;color:#bbb;cursor:not-allowed;' :
+                        'background:#6a1b9a;color:white;'"
+                    th:attr="data-nome=${item.nome}"
+                    onclick="if(this.disabled) return false; return confirm('Confirmar: frasco de &quot;' + this.dataset.nome + '&quot; foi para o lixo?')"
+                    title="Registrar que este produto acabou">
+              <span>&#128465;</span>
+              <span th:text="${item.semEstoque} ? 'Sem estoque' : 'Frasco no lixo'"></span>
+            </button>
+          </form>
+
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Rodape informativo -->
+  <p class="text-muted small text-center mt-2">
+    Apos registrar, o painel da Leila ira exibir um alerta de reposicao automaticamente.
+  </p>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
